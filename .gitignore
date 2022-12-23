@@ -1,0 +1,8 @@
+# Webstorm 설정
+.idea
+
+# node modules
+/node_modules
+
+# package-lock
+package-lock.json
