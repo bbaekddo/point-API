@@ -131,7 +131,8 @@ const retrieveUserReview = async function (userId: number): Promise<object[]> {
                         content: true
                     }
                 },
-                content: true
+                content: true,
+                uuid: true
             }
         });
     } catch (error) {
