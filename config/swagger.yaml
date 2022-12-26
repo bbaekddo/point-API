@@ -1,0 +1,182 @@
+openapi: 3.0.3
+info:
+  title: Point API Server - yugacrew
+  description: '포인트 API'
+  version: '1.0.0'
+servers:
+  - url: http://localhost:3000
+tags:
+  - name: User
+    description: 사용자 계정
+  - name: Product
+    description: 상품
+  - name: Review
+    description: 상품 리뷰
+  - name: Point
+    description: 사용자 포인트
+paths:
+  /users:
+    get:
+      tags:
+        - User
+      summary: 전체 사용자 계정 조회
+      responses:
+        '200':
+          description: OK
+    post:
+      tags:
+        - User
+      summary: 사용자 추가 등록
+      requestBody:
+        description: 추가 사용자 정보
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                userName:
+                  description: 사용자 이름
+                  type: string
+            example:
+              userName: testUser
+      responses:
+        '200':
+          description: OK
+  /products:
+    get:
+      tags:
+        - Product
+      summary: 전체 상품 조회
+      responses:
+        '200':
+          description: OK
+    post:
+      tags:
+        - Product
+      summary: 상품 추가 등록
+      requestBody:
+        description: 추가 상품 정보
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                title:
+                  description: 상품 이름
+                  type: string
+                content:
+                  description: 상품 정보
+                  type: string
+            example:
+              title: newProduct
+              content: good
+      responses:
+        '200':
+          description: OK
+  /reviews:
+    get:
+      tags:
+        - Review
+      summary: 사용자 작성 리뷰 조회
+      parameters:
+        - name: userId
+          in: query
+          description: 사용자 UUID
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: OK
+  /reviews/point:
+    get:
+      tags:
+        - Point
+      summary: 포인트 조회
+      parameters:
+        - name: userId
+          in: query
+          description: 사용자 UUID
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: OK
+    post:
+      tags:
+        - Point
+      summary: 포인트 적립
+      requestBody:
+        description: 상품 리뷰 작성
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                userId:
+                  description: 사용자 UUID
+                  type: string
+                productId:
+                  description: 상품 UUID
+                  type: string
+                content:
+                  description: 상품 리뷰 내용
+                  type: string
+            example:
+              userId: '33fbb366-abab-4cff-99d4-6a1818c3c7d2'
+              productId: '2fda96c5-45d6-4ace-93b3-c1ad9e58c331'
+              content: '상품 리뷰'
+      responses:
+        '200':
+          description: OK
+    patch:
+      tags:
+        - Point
+      summary: 포인트 수정
+      requestBody:
+        description: 상품 리뷰 수정
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                userId:
+                  description: 사용자 UUID
+                  type: string
+                productId:
+                  description: 상품 UUID
+                  type: string
+                content:
+                  description: 수정할 상품 리뷰 내용
+                  type: string
+            example:
+              userId: '33fbb366-abab-4cff-99d4-6a1818c3c7d2'
+              productId: '2fda96c5-45d6-4ace-93b3-c1ad9e58c331'
+              content: '상품 리뷰 수정'
+      responses:
+        '200':
+          description: OK
+    delete:
+      tags:
+        - Point
+      summary: 포인트 삭제
+      requestBody:
+        description: 상품 리뷰 삭제
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                userId:
+                  description: 사용자 UUID
+                  type: string
+                reviewId:
+                  description: 상품 리뷰 UUID
+                  type: string
+            example:
+              userId: '33fbb366-abab-4cff-99d4-6a1818c3c7d2'
+              productId: 'b969cf9f-3e87-4fba-9559-bb0745ad3e6c'
+      responses:
+        '200':
+          description: OK
