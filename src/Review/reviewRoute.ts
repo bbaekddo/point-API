@@ -13,6 +13,10 @@ export default {
             .get(review.getProduct)
             .post(review.postProduct);
 
+        // 리뷰 API
+        app.route('/app/reviews')
+            .get(review.getReview);
+
         // 포인트 API
         app.route('/app/reviews/point')
             .get(review.getPoint)
