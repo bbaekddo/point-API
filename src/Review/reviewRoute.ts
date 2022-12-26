@@ -17,7 +17,8 @@ export default {
         app.route('/app/reviews/point')
             .get(review.getPoint)
             .post(review.postPoint)
-            .patch(review.patchPoint);
+            .patch(review.patchPoint)
+            .delete(review.deletePoint);
 
     }
 }

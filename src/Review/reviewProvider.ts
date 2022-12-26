@@ -72,11 +72,12 @@ const retrieveProductById = async function (productId: string): Promise<Product[
 };
 
 // 사용자가 작성한 리뷰 조회
-const retrieveReviewByUserId = async function (userId: number): Promise<{uuid: string | null}[]> {
+const retrieveReviewByUserAndProductId = async function (userId: number, productId: number): Promise<{uuid: string | null}[]> {
     try {
         return await prisma.review.findMany({
             where: {
-                user: userId
+                user: userId,
+                product: productId
             },
             select: {
                 uuid: true,
@@ -160,7 +161,7 @@ export default {
     retrieveProduct,
     retrieveUserById,
     retrieveProductById,
-    retrieveReviewByUserId,
+    retrieveReviewByUserAndProductId,
     retrieveReviewByProductId,
     retrieveReviewByUUID,
     retrieveUserPoint,

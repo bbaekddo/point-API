@@ -236,6 +236,47 @@ const patchPoint = async function (req: Request, res: Response): Promise<Respons
 };
 
 
+/** 포인트 삭제 API
+ * [DELETE] /app/reviews/point
+ * body : userId, reviewId
+ */
+const deletePoint = async function (req: Request, res: Response): Promise<Response> {
+    // 사용자 ID, 상품 리뷰 ID
+    const {userId, reviewId}: {userId: string, reviewId: string | null} = req.body;
+
+    // 사용자 계정 조회
+    let userResult: User[];
+    try {
+        userResult = await reviewProvider.retrieveUserById(userId);
+    } catch {
+        return res.send(errResponse(baseResponse.DB_ERROR));
+    }
+
+    // 사용자 계정을 조회할 수 없는 경우
+    if (userResult.length < 1) {
+        return res.send(errResponse(baseResponse.USER_NOT_FOUND));
+    }
+
+    // 상품 리뷰 조회
+    let reviewResult: Review[];
+    try {
+        reviewResult = await reviewProvider.retrieveReviewByUUID(reviewId);
+    } catch {
+        return res.send(errResponse(baseResponse.DB_ERROR));
+    }
+
+    // 리뷰를 조회할 수 없는 경우
+    if (reviewResult.length < 1) {
+        return res.send(errResponse(baseResponse.REVIEW_NOT_FOUND));
+    }
+
+    // 포인트 삭제
+    const deletePointResponse: object = await reviewService.deletePoint(userResult[0], reviewResult[0]);
+
+    // 응답
+    return res.send(deletePointResponse);
+};
+
 
 export default {
     getUser,
@@ -245,4 +286,5 @@ export default {
     getPoint,
     postPoint,
     patchPoint,
+    deletePoint,
 }

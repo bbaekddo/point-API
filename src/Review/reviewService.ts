@@ -69,7 +69,7 @@ const createPoint = async function (user: User, product: Product, content: strin
     // 사용자가 작성한 리뷰 확인
     let userReviewResult: { uuid: string | null }[];
     try {
-        userReviewResult = await reviewProvider.retrieveReviewByUserId(user.id);
+        userReviewResult = await reviewProvider.retrieveReviewByUserAndProductId(user.id, product.id);
     } catch {
         return errResponse(baseResponse.DB_ERROR);
     }
@@ -187,7 +187,7 @@ const createPoint = async function (user: User, product: Product, content: strin
 
     // 리뷰 UUID 확인
     try {
-        userReviewResult = await reviewProvider.retrieveReviewByUserId(user.id);
+        userReviewResult = await reviewProvider.retrieveReviewByUserAndProductId(user.id, product.id);
     } catch {
         return errResponse(baseResponse.DB_ERROR);
     }
@@ -313,9 +313,85 @@ const updatePoint = async function (user: User, review: Review, content: string,
     return response(baseResponse.SUCCESS, finalResult);
 };
 
+// 포인트 삭제
+const deletePoint = async function (user: User, review: Review): Promise<object> {
+    // 사용자가 받은 포인트 확인
+    let userPointResult: UserPoint[];
+    try {
+        userPointResult = await reviewProvider.retrieveUserPointByUserAndProductId(user.id, review.product);
+    } catch {
+        return errResponse(baseResponse.DB_ERROR);
+    }
+
+    // 받은 포인트 타입 확인
+    let checkPointHistory1: boolean = false;
+    let checkPointHistory2: boolean = false;
+    for (let userPoint of userPointResult) {
+        if (userPoint.type === 1) {
+            checkPointHistory1 = true
+        } else if (userPoint.type === 2) {
+            checkPointHistory2 = true
+        }
+    }
+
+    // 포인트 결정
+    let currentPoint: number = user.point;
+    // 모든 점수를 받았을 경우
+    if (checkPointHistory1 && checkPointHistory2) {
+        currentPoint -= 2;
+    } else if (checkPointHistory1 || checkPointHistory2) {
+        // 하나의 점수만 받았을 경우
+        currentPoint -= 1;
+    }
+
+    // 포인트 삭제
+    try {
+        // 리뷰 삭제
+        const deleteReview = prisma.review.deleteMany({
+            where: {
+                id: review.id
+            }
+        });
+
+        // 트랜잭션 처리
+        if (checkPointHistory1 || checkPointHistory2) {
+            // 1점 이상 받았을 경우
+            await prisma.$transaction([deleteReview,
+                prisma.user.updateMany({
+                    where: {
+                        id: user.id
+                    },
+                    data: {
+                        point: currentPoint
+                    }
+                }),
+                prisma.userPoint.updateMany({
+                    where: {
+                        user: user.id,
+                        product: review.product,
+                    },
+                    data: {
+                        point: 0,
+                        reason: '리뷰 삭제',
+                        type: 4
+                    }
+                })]);
+        } else {
+            // 점수를 못 받았을 경우
+            await prisma.$transaction([deleteReview]);
+        }
+    } catch (error) {
+        return errResponse(baseResponse.DB_ERROR);
+    }
+
+    return response(baseResponse.SUCCESS, {});
+};
+
+
 export default {
     createUser,
     createProduct,
     createPoint,
     updatePoint,
+    deletePoint,
 }
