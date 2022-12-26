@@ -6,6 +6,7 @@ export default {
     USER_NOT_FOUND: {"isSuccess": false, "code": 2001, "message": "사용자를 찾을 수 없습니다"},
     PRODUCT_NOT_FOUND: {"isSuccess": false, "code": 2002, "message": "상품을 찾을 수 없습니다"},
     REVIEW_NOT_FOUND: {"isSuccess": false, "code": 2003, "message": "리뷰를 찾을 수 없습니다"},
+    REVIEW_WRITER_WRONG: {"isSuccess": false, "code": 2004, "message": "리뷰를 작성한 사용자가 아닙니다"},
 
     
     // Response error
