@@ -6,6 +6,7 @@ import {CreatePoint} from '../../config/responseInterface';
 
 // Use Prisma
 import {PrismaClient, User, Product, Review, UserPoint} from '@prisma/client';
+
 const prisma = new PrismaClient();
 
 // Service Create, Update, Delete 로직 처리
@@ -202,8 +203,119 @@ const createPoint = async function (user: User, product: Product, content: strin
     return response(baseResponse.SUCCESS, finalResponse);
 };
 
+// 포인트 수정
+const updatePoint = async function (user: User, review: Review, content: string, contentScore: boolean): Promise<object> {
+    // 사용자가 받은 포인트 확인
+    let userPointResult: UserPoint[];
+    try {
+        userPointResult = await reviewProvider.retrieveUserPointByUserAndProductId(user.id, review.product);
+    } catch {
+        return errResponse(baseResponse.DB_ERROR);
+    }
+
+    // 내용 점수로 받은 포인트가 있는지 확인
+    let checkPointHistory: boolean = false;
+    for (let userPoint of userPointResult) {
+        if (userPoint.type === 1) {
+            checkPointHistory = true
+        }
+    }
+
+    // TODO: 회수 부분 삭제
+    // 포인트 결정
+    let currentPoint: number = user.point;
+    let point: number = 0;
+    // 내용 점수를 받을 경우
+    if (!checkPointHistory && contentScore) {
+        point++;
+    } else if (checkPointHistory && !contentScore) {
+        // 내용 점수를 회수할 경우
+        point--;
+    }
+    // 포인트 합산
+    currentPoint += point;
+
+    // 포인트 적립
+    try {
+        // 리뷰 수정
+        const updateReview = prisma.review.updateMany({
+            where: {
+                id: review.id
+            },
+            data: {
+                content: content
+            }
+        });
+
+        // 트랜잭션 처리
+        if (!checkPointHistory && contentScore) {
+            // 내용 점수를 받을 경우
+            await prisma.$transaction([updateReview,
+                prisma.user.updateMany({
+                    where: {
+                        id: user.id
+                    },
+                    data: {
+                        point: currentPoint
+                    }
+                }),
+                prisma.userPoint.create({
+                    data: {
+                        user: user.id,
+                        product: review.product,
+                        point: point,
+                        reason: '1자 이상 텍스트 작성',
+                        type: 1
+                    }
+                })]);
+        } else if (checkPointHistory && !contentScore) {
+            // 내용 점수를 회수할 경우
+            await prisma.$transaction([updateReview,
+                prisma.user.updateMany({
+                    where: {
+                        id: user.id
+                    },
+                    data: {
+                        point: currentPoint
+                    }
+                }),
+                prisma.userPoint.create({
+                    data: {
+                        user: user.id,
+                        product: review.product,
+                        point: point,
+                        reason: '내용 점수 회수',
+                        type: 3
+                    }
+                })]);
+        } else {
+            // 점수를 못 받을 경우
+            await prisma.$transaction([updateReview]);
+        }
+    } catch (error) {
+        return errResponse(baseResponse.DB_ERROR);
+    }
+
+    // 리뷰 확인
+    let reviewResult: Review[];
+    try {
+        reviewResult = await reviewProvider.retrieveReviewByUUID(review.uuid);
+    } catch {
+        return errResponse(baseResponse.DB_ERROR);
+    }
+
+    // 최종 응답 객체
+    const finalResult = {
+        uuid : reviewResult[0].uuid,
+        content: reviewResult[0].content
+    };
+
+    return response(baseResponse.SUCCESS, finalResult);
+};
+
 export default {
     createUser,
     createProduct,
     createPoint,
+    updatePoint,
 }

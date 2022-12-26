@@ -185,11 +185,11 @@ const postPoint = async function (req: Request, res: Response): Promise<Response
 
 /** 포인트 수정 API
  * [PATCH] /app/reviews/point
- * body : reviewId, content
+ * body : userId, reviewId, content
  */
 const patchPoint = async function (req: Request, res: Response): Promise<Response> {
-    // 사용자 ID, 상품 ID, 리뷰 내용
-    const {userId, productId, content}: {userId: string, productId: string, content: string} = req.body;
+    // 사용자 ID, 상품 리뷰 ID, 리뷰 내용
+    const {userId, reviewId, content}: {userId: string, reviewId: string | null, content: string} = req.body;
 
     // 사용자 계정 조회
     let userResult: User[];
@@ -204,17 +204,17 @@ const patchPoint = async function (req: Request, res: Response): Promise<Respons
         return res.send(errResponse(baseResponse.USER_NOT_FOUND));
     }
 
-    // 상품 조회
-    let productResult: Product[];
+    // 상품 리뷰 조회
+    let reviewResult: Review[];
     try {
-        productResult = await reviewProvider.retrieveProductById(productId);
+        reviewResult = await reviewProvider.retrieveReviewByUUID(reviewId);
     } catch {
         return res.send(errResponse(baseResponse.DB_ERROR));
     }
 
-    // 상품을 조회할 수 없는 경우
-    if (productResult.length < 1) {
-        return res.send(errResponse(baseResponse.PRODUCT_NOT_FOUND));
+    // 리뷰를 조회할 수 없는 경우
+    if (reviewResult.length < 1) {
+        return res.send(errResponse(baseResponse.REVIEW_NOT_FOUND));
     }
 
     // 리뷰 내용 길이 검사
@@ -229,10 +229,10 @@ const patchPoint = async function (req: Request, res: Response): Promise<Respons
     }
 
     // 포인트 적립
-    const postPointResponse: object = await reviewService.createPoint(userResult[0], productResult[0], content, contentScore);
+    const patchPointResponse: object = await reviewService.updatePoint(userResult[0], reviewResult[0], content, contentScore);
 
     // 응답
-    return res.send(postPointResponse);
+    return res.send(patchPointResponse);
 };
 
 

@@ -103,6 +103,19 @@ const retrieveReviewByProductId = async function (productId: number): Promise<{u
     }
 };
 
+// 사용자가 작성한 리뷰 조회 (by UUID)
+const retrieveReviewByUUID = async function (uuid: string | null): Promise<Review[]> {
+    try {
+        return await prisma.review.findMany({
+            where: {
+                uuid
+            }
+        });
+    } catch (error) {
+        throw error;
+    }
+};
+
 // 포인트 이력 조회
 const retrieveUserPoint = async function (userId: number): Promise<object[]> {
     try {
@@ -126,6 +139,20 @@ const retrieveUserPoint = async function (userId: number): Promise<object[]> {
     }
 };
 
+// 특정 상품의 포인트 조회
+const retrieveUserPointByUserAndProductId = async function (userId: number, productId: number): Promise<UserPoint[]> {
+    try {
+        return await prisma.userPoint.findMany({
+            where: {
+                user: userId,
+                product: productId
+            }
+        });
+    } catch (error) {
+        throw error;
+    }
+};
+
 
 export default {
     retrieveUser,
@@ -135,5 +162,7 @@ export default {
     retrieveProductById,
     retrieveReviewByUserId,
     retrieveReviewByProductId,
+    retrieveReviewByUUID,
     retrieveUserPoint,
+    retrieveUserPointByUserAndProductId,
 }
