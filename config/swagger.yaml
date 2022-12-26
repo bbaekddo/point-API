@@ -144,15 +144,15 @@ paths:
                 userId:
                   description: 사용자 UUID
                   type: string
-                productId:
-                  description: 상품 UUID
+                reviewId:
+                  description: 상품 리뷰 UUID
                   type: string
                 content:
                   description: 수정할 상품 리뷰 내용
                   type: string
             example:
               userId: '33fbb366-abab-4cff-99d4-6a1818c3c7d2'
-              productId: '2fda96c5-45d6-4ace-93b3-c1ad9e58c331'
+              reviewId: 'd621defc-5832-4fc5-b502-97ec4dc84922'
               content: '상품 리뷰 수정'
       responses:
         '200':
@@ -176,7 +176,7 @@ paths:
                   type: string
             example:
               userId: '33fbb366-abab-4cff-99d4-6a1818c3c7d2'
-              productId: 'b969cf9f-3e87-4fba-9559-bb0745ad3e6c'
+              reviewId: 'b969cf9f-3e87-4fba-9559-bb0745ad3e6c'
       responses:
         '200':
           description: OK
