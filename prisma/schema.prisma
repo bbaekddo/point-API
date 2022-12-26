@@ -1,0 +1,47 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = "file:../db/yugacrew.sqlite"
+}
+
+model Product {
+  id        Int         @id @default(autoincrement())
+  uuid      String?
+  title     String
+  content   String?     @default("")
+  Review    Review[]
+  UserPoint UserPoint[]
+}
+
+model Review {
+  id      Int     @id @default(autoincrement())
+  uuid    String?
+  user    Int
+  product Int
+  content String  @default("")
+  Product Product @relation(fields: [product], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  User    User    @relation(fields: [user], references: [id], onDelete: NoAction, onUpdate: NoAction)
+}
+
+model User {
+  id        Int         @id @default(autoincrement())
+  uuid      String?
+  name      String?
+  point     Int         @default(0)
+  Review    Review[]
+  UserPoint UserPoint[]
+}
+
+model UserPoint {
+  id      Int     @id @default(autoincrement())
+  user    Int
+  product Int
+  point   Int?    @default(0)
+  reason  String?
+  type    Int?    @default(0)
+  Product Product @relation(fields: [product], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  User    User    @relation(fields: [user], references: [id], onDelete: NoAction, onUpdate: NoAction)
+}
