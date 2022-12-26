@@ -247,6 +247,11 @@ const patchPoint = async function (req: Request, res: Response): Promise<Respons
         return res.send(errResponse(baseResponse.REVIEW_NOT_FOUND));
     }
 
+    // 리뷰를 작성한 사용자 검사
+    if (userResult[0].id !== reviewResult[0].user) {
+        return res.send(errResponse(baseResponse.REVIEW_WRITER_WRONG));
+    }
+
     // 리뷰 내용 길이 검사
     let contentScore: boolean = false;
     if (content !== undefined && content !== null) {
@@ -298,6 +303,11 @@ const deletePoint = async function (req: Request, res: Response): Promise<Respon
     // 리뷰를 조회할 수 없는 경우
     if (reviewResult.length < 1) {
         return res.send(errResponse(baseResponse.REVIEW_NOT_FOUND));
+    }
+
+    // 리뷰를 작성한 사용자 검사
+    if (userResult[0].id !== reviewResult[0].user) {
+        return res.send(errResponse(baseResponse.REVIEW_WRITER_WRONG));
     }
 
     // 포인트 삭제

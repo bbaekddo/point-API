@@ -293,7 +293,7 @@ const updatePoint = async function (user: User, review: Review, content: string,
                         type: 1
                     },
                     data: {
-                        point: point,
+                        point: 0,
                         reason: '내용 점수 회수',
                         type: 3
                     }
