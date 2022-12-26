@@ -215,22 +215,29 @@ const updatePoint = async function (user: User, review: Review, content: string,
 
     // 내용 점수로 받은 포인트가 있는지 확인
     let checkPointHistory: boolean = false;
+    let checkDeletePoint: boolean = false;
     for (let userPoint of userPointResult) {
         if (userPoint.type === 1) {
-            checkPointHistory = true
+            // 기존에 받은 내용 점수가 있을 경우
+            checkPointHistory = true;
+        } else if (userPoint.type === 3) {
+            // 기존에 삭제된 내용 점수가 있을 경우
+            checkDeletePoint = true;
         }
     }
 
-    // TODO: 회수 부분 삭제
     // 포인트 결정
     let currentPoint: number = user.point;
     let point: number = 0;
-    // 내용 점수를 받을 경우
-    if (!checkPointHistory && contentScore) {
+    // 처음으로 내용 점수를 받을 경우
+    if (!checkPointHistory && contentScore && !checkDeletePoint) {
         point++;
     } else if (checkPointHistory && !contentScore) {
         // 내용 점수를 회수할 경우
         point--;
+    } else if (checkDeletePoint && contentScore) {
+        // 회수한 내용 점수를 다시 받을 경우
+        point++;
     }
     // 포인트 합산
     currentPoint += point;
@@ -248,8 +255,8 @@ const updatePoint = async function (user: User, review: Review, content: string,
         });
 
         // 트랜잭션 처리
-        if (!checkPointHistory && contentScore) {
-            // 내용 점수를 받을 경우
+        if (!checkPointHistory && contentScore && !checkDeletePoint) {
+            // 처음 내용 점수를 받을 경우
             await prisma.$transaction([updateReview,
                 prisma.user.updateMany({
                     where: {
@@ -279,13 +286,39 @@ const updatePoint = async function (user: User, review: Review, content: string,
                         point: currentPoint
                     }
                 }),
-                prisma.userPoint.create({
-                    data: {
+                prisma.userPoint.updateMany({
+                    where: {
                         user: user.id,
                         product: review.product,
+                        type: 1
+                    },
+                    data: {
                         point: point,
                         reason: '내용 점수 회수',
                         type: 3
+                    }
+                })]);
+        } else if (checkDeletePoint && contentScore) {
+            // 회수한 내용 점수를 다시 받을 경우
+            await prisma.$transaction([updateReview,
+                prisma.user.updateMany({
+                    where: {
+                        id: user.id
+                    },
+                    data: {
+                        point: currentPoint
+                    }
+                }),
+                prisma.userPoint.updateMany({
+                    where: {
+                        user: user.id,
+                        product: review.product,
+                        type: 3
+                    },
+                    data: {
+                        point: point,
+                        reason: '1자 이상 텍스트 작성',
+                        type: 1
                     }
                 })]);
         } else {

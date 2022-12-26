@@ -23,6 +23,5 @@ export default {
             .post(review.postPoint)
             .patch(review.patchPoint)
             .delete(review.deletePoint);
-
     }
 }
